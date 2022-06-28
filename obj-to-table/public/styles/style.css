@@ -1,0 +1,18 @@
+:root{
+  --r:255;
+  --g:255;
+  --b:255;
+  --table-color:rgb(var(--r),var(--g),var(--b))
+}
+
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    margin: 2px;
+    background-color: var(--table-color);
+  }
+
+body{
+  background-color: lightblue;
+}
