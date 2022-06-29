@@ -1,0 +1,105 @@
+#gamearea {
+    width: 600px;
+    height: 600px;
+    margin: 0 0;
+    padding:0;
+    position: relative;
+    background-color: #bebebf;
+    outline-style: solid;
+    outline-color: #7e7e7e;
+    display: inline-block;
+}
+
+html{
+    background-image: url("background.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+#game{
+    width: 800px;
+    height: 603px;
+    margin: 0 auto;
+    padding:0;
+    position: relative;
+    background-color: #bebebf;
+    outline-style: solid;
+    outline-color: #323233;
+    top:1000px;
+}
+
+
+.kocka{
+    position: absolute;
+    margin:0;
+    padding:0;
+    display: inline-block;
+
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+
+#reset:hover{
+    cursor: pointer;
+}
+.diff:hover{
+    cursor: pointer;
+}
+.diff:active{
+    cursor: pointer;
+    background-color: #929292;
+}
+
+.diff{
+    background-color: #cfcfcf;
+    margin-top:10px;
+    border:2px black solid;
+}
+#menu{
+    display:inline-block;
+    width:180px;
+    float:right;
+    padding:10px;
+}
+
+
+.ido{
+    width:40px;
+    padding:0;
+    margin:0;
+}
+
+#ido_tarolo{
+    color:white;
+    background-color:black;
+    margin:0;
+    margin-top:20px;
+    padding:0;
+    width:130px;
+}
+#zaszlo_tarolo{
+    color:white;
+    background-color:black;
+    margin:0;
+    margin-top:50px;
+    padding:0;
+    width:90px;
+}
+
+#list_easy{
+    width:200px;
+    display:inline-block;
+    background: #cfcfcf;
+    padding:10px;
+}
+
+#list_hard{
+    width:200px;
+    display:inline-block;
+    background: #cfcfcf;
+    padding:10px;
+}
