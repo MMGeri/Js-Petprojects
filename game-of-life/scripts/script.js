@@ -1,8 +1,10 @@
 document.addEventListener('contextmenu', event => event.preventDefault());
 const CANVAS_ID="game"
-const SIZE=200
+const SIZE=1000
 
 let tiles = [];
+let newTiles= [];
+
 let timer = null;
 
 let drawing = false;
@@ -14,11 +16,13 @@ let ctx;
 canvas = $(`#${CANVAS_ID}`)
 ctx = canvas[0].getContext("2d");
 
-timer = setInterval(draw, 40);
 
+
+
+// timer = setInterval(draw, 40);
 initializeGameArea(SIZE);
-setEventListeners();
-drawBackground();
+// setEventListeners();
+
 
 
 function initializeGameArea(SIZE){
@@ -28,36 +32,36 @@ function initializeGameArea(SIZE){
             tiles[i][j] = {
                 x_pos: i * 4,
                 y_pos: j * 4,
-                alive: 0,
-                markedForDeath: 0,
-                markedForBirth: 0
+                markedForBirth:0,
+                markedForDeath:0,
+                alive: Math.random() > 0.5 ? 1 : 0
             };
         }
     }
 }
 
 function draw() {
-    drawBackground();
-    drawTiles();
+    drawBackground("#000000");
+    drawTiles("#FFFFFF");
     if (goPressed) {
         updateTiles();
     }
 }
 
-function drawBackground() {
+function drawBackground(color) {
     ctx.beginPath();
     ctx.rect(0, 0, 800, 800);
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = color;
     ctx.fill();
 }
 
-function drawTiles() {
+function drawTiles(color) {
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
             if (tiles[i][j].alive == 1) {
                 ctx.beginPath();
                 ctx.rect(tiles[i][j].x_pos, tiles[i][j].y_pos, 4, 4);
-                ctx.fillStyle = "#FFFFFF";
+                ctx.fillStyle = color;
                 ctx.fill();
             }
         }
@@ -65,31 +69,19 @@ function drawTiles() {
 }
 
 function updateTiles() {
+    newTiles = JSON.parse(JSON.stringify(tiles));
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
                 let numOfNeighbours = checkNeighbours(i,j);
                 if ((numOfNeighbours < 2) || (numOfNeighbours > 3)) {
-                    tiles[i][j].markedForDeath = 1;
+                    newTiles[i][j].alive = 0;
                 }
                 if (numOfNeighbours === 3) {
-                    tiles[i][j].markedForBirth = 1;
+                    newTiles[i][j].alive = 1;
                 }
             }
         }
-
-
-    for (let i = 0; i < SIZE; i++) {
-        for (let j = 0; j < SIZE; j++) {
-            if (tiles[i][j].markedForBirth == 1) {
-                tiles[i][j].markedForBirth = 0;
-                tiles[i][j].alive = 1;
-            }
-            if (tiles[i][j].markedForDeath == 1) {
-                tiles[i][j].markedForDeath = 0;
-                tiles[i][j].alive = 0;
-            }
-        }
-    }
+    tiles=newTiles;
     }
 
     function checkNeighbours(x,y){ 

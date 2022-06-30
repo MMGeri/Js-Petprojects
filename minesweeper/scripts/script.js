@@ -1,130 +1,175 @@
-let game_area;
-let ga_width, ga_height;
-let reset;
-let hard;
-let easy;
-let game;
-
-//negyzetek
-let start_ex = 0;
-let start_ey = 0;
-let end_ey = 600;
-let end_ex = 600;
-let kocka_oszlop = 16;
-let offset_x = (end_ex - start_ex) / kocka_oszlop;
-let offset_y = (end_ey - start_ey) / kocka_oszlop;
-let kocka_sor;
-let kocka;
-let kocka_array = [];
-let timer;
-let score = 0;
-let clicked = 0;
-let aknakszama = 40;
-let osszeskocka = 0;
-let zaszlok_szama = aknakszama;
-let gamemode = 0;
-var loaded=false;
-
-
-class Minesweeper {
-    constructor(gameAreaWidth,gameAreaHeight){
-        this.audio={backgroundMusic: new Audio('audio_file.mp3'),youDied: new Audio('youdied.mp3')}
-        this.gameArea=$('#gamearea');
+const TILE_VALUES = {
+    MINE: -1,
+    EMPTY: 0,
+    ONE: 1,
+    TWO: 2,
+    THREE: 3,
+    FOUR: 4,
+    FIVE: 5,
+    SIX: 6,
+    SEVEN: 7,
+    EIGHT: 8
+}
+const DIFFICULTIES = {
+    EASY: {
+        width: 16,
+        height: 16,
+        mines: 40
+    },
+    HARD:{
+        width: 30,
+        height: 16,
+        mines: 99
     }
 }
-//TODO
+
+class Tile {
+    constructor(x,y,index,value = TILE_VALUES.EMPTY) {
+        this.x_pos = x;
+        this.y_pos = y;
+        this.index = index;
+        this.value = value;
+        this.revealed = false;
+        this.flagged = false;
+    }
+}
+
+class GameArea {
+    
+    constructor(width, height, numberOfMines) {
+        this.width = width;
+        this.height = height;
+        this.flags=0;
+        this.numberOfMines=numberOfMines;
+
+        this.tiles = [];
+        this.initializeGameArea(width, height);
+    }
+    
+    initializeGameArea = function(width, height){
+        this._createTiles();
+        this._createMines();
+        
+        for(let tile of this.tiles){
+            tile.value=_calculateTileValue(tile);
+        }
+    }
+    _createTiles(){
+        for(let i=0;i<width;i++){
+            for(let j = 0; j<height; j++){
+                this.tiles.push(new Tile( i, j, i+j*width ));   
+            }
+        }
+    }
+    _createMines(){
+        for (let i = 0; i < this.numberOfMines;) {
+            let rand = Math.floor(Math.random() * this.tiles.length);
+            if (tiles[rand].value != TILE_VALUES.MINE) {
+                tiles[rand].value = TILE_VALUES.MINE;
+                i++;
+            }
+        }
+    }
+    _calculateTileValue(tile){
+        if(tile.value==TILE_VALUES.MINE)
+            return;
+        let minesAround=0;
+        for (var i = -1; i < 2; i++) {
+            for (var k = -1; k < 2; k++) {
+                if (tiles[tile.index] != undefined && tiles[tile.index].value == TILE_VALUES.MINE) {
+                    minesAround++;
+                }
+            }
+        }
+        return minesAround;
+    }
+    
+    clickTile(x,y){    }
+}
+
+class MinesweeperGame{
+    constructor(width, height, difficulty){
+        this.gameArea = new GameArea(width, height);
+        this.difficulty = difficulty;
+    }
+}
+class Gui{
+    constructor(game, resolution, rootElement){
+        
+    }
+    create(){    }
+    startTimer(){    }
+    bindEvents(){    }
+    
+    destroy(){    }
+    stopTimer(){    }
+    unbindEvents(){    }
+}
 
 
-$(document).on('click',function(){
-    if(loaded==false){
-        audio.play();
-        audio.loop = true;
-        loaded=true;}
-});
 
-fill_toplist();
-reset = $('#reset');
-game = $('#game');
-game_area = $('#gamearea');
-kocka = $('<img src="enemy.png">');
-easy = $('#easy');
-hard = $('#hard');
-game.animate({top: 100}, 6000);
-beallit();
-ga_width = parseInt(game_area.css('width'));
-ga_height = parseInt(game_area.css('height'));
-kocka_sor = 16;
-osszeskocka = kocka_oszlop * kocka_sor;
+let game = new MinesweeperGame(...Object.values(DIFFICULTIES.EASY))
+let gameGui = new Gui(game, 1, $('#game-area'));
+gameGui.create();
 
-kocka.on('load', function () {
-    init_kocka();
-    draw_kocka();
-});
-$(hard).on('click', function () {
-    gamemode = 1;
-    $(reset).attr("src", "smile.png");
-    reset_game();
-    aknakszama = 99;
-    zaszlok_szama = aknakszama;
-    game.css({
-        width: 1400,
-        height: 640
-    });
-    game_area.css({
-        width: 1200,
-        height: 637
-    });
-    end_ey = 600;
-    end_ex = 1200;
-    kocka_oszlop = 30;
 
-    offset_x = (end_ex - start_ex) / kocka_oszlop;
-    offset_y = (end_ey - start_ey) / kocka_oszlop * 2;
-    ga_width = parseInt(game_area.css('width'));
-    ga_height = parseInt(game_area.css('height'));
-    kocka_sor = 16;
-    osszeskocka = kocka_oszlop * kocka_sor;
-    beallit();
-    init_kocka();
-    draw_kocka();
-});
-$(easy).on('click', function () {
-    gamemode = 0;
-    $(reset).attr("src", "smile.png");
-    reset_game();
-    aknakszama = 40;
-    zaszlok_szama = aknakszama;
-    game.css({
-        width: 800,
-        height: 603
-    });
-    game_area.css({
-        width: 600,
-        height: 600
-    });
-    end_ey = 600;
-    end_ex = 600;
-    kocka_oszlop = 16;
+// let reset;
+// let hard;
+// let easy;
+// let game;
 
-    offset_x = (end_ex - start_ex) / kocka_oszlop;
-    offset_y = (end_ey - start_ey) / kocka_oszlop;
-    ga_width = parseInt(game_area.css('width'));
-    ga_height = parseInt(game_area.css('height'));
-    kocka_sor = 16;
-    osszeskocka = kocka_oszlop * kocka_sor;
-    beallit();
-    init_kocka();
-    draw_kocka();
-});
-$(game_area).on('click', click_kocka);
-$(game_area).on('click', function () {
+// //negyzetek
+// let start_ex = 0;
+// let start_ey = 0;
+// let end_ey = 600;
+// let end_ex = 600;
+// let kocka_oszlop = 16;
+// let offset_x = (end_ex - start_ex) / kocka_oszlop;
+// let offset_y = (end_ey - start_ey) / kocka_oszlop;
+// let kocka_sor;
+// let kocka;
+// let tiles = [];
+// let timer;
+// let score = 0;
+// let clicked = 0;
+// let aknakszama = 40;
+// let osszeskocka = 0;
+// let zaszlok_szama = aknakszama;
+// let difficulty = 0;
+// var loaded=false;
+
+
+// $(document).on('click',function(){
+//     if(loaded==false){
+//         audio.play();
+//         audio.loop = true;
+//         loaded=true;}
+// });
+
+// fill_toplist();
+// reset = $('#reset');
+// game = $('#game');
+// gameArea = $('#gamearea');
+// kocka = $('<img src="enemy.png">');
+// easy = $('#easy');
+// hard = $('#hard');
+// game.animate({top: 100}, 6000);
+// beallit();
+// ga_width = parseInt(gameArea.css('width'));
+// ga_height = parseInt(gameArea.css('height'));
+// kocka_sor = 16;
+// osszeskocka = kocka_oszlop * kocka_sor;
+
+
+$(gameArea).on('click', click_kocka);
+$(gameArea).on('click', function () {
     if (clicked == 0) {
         clicked = 1;
         timer = setInterval(ido, 1000);
     }
 });
 $(reset).on('click', function () {
-    if (gamemode == 0) {
+    if (difficulty == 0) {
         aknakszama = 40;
     } else aknakszama = 99;
     zaszlok_szama = aknakszama;
@@ -139,30 +184,48 @@ $(reset).on('mousedown', function () {
 $(reset).on('mouseup', function () {
     $(reset).attr("src", "smile.png");
 });
-$(game_area).on('contextmenu', zaszlo);
+$(gameArea).on('contextmenu', zaszlo);
 document.addEventListener('contextmenu', event => event.preventDefault());
 
-function zaszlo(ev) {
 
-    let div_pos = game_area.offset();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function zaszlo(ev) {
+    
+    let div_pos = gameArea.offset();
     let mouse_posx = Math.ceil(ev.clientX - div_pos.left);
     let mouse_posy = Math.ceil(ev.clientY - div_pos.top);
-
-    for (var e in kocka_array) {
-        if (mouse_posx > kocka_array[e].x_pos && mouse_posx < kocka_array[e].x_pos + offset_x && mouse_posy > kocka_array[e].y_pos && mouse_posy < kocka_array[e].y_pos + offset_y) {
-            if (kocka_array[e].zaszlo == 0 && kocka_array[e].kattintott == 0) {
-                kocka_array[e].divObj.attr("src", "zaszlo.png");
-                kocka_array[e].zaszlo = 1;
+    
+    for (var e in tiles) {
+        if (mouse_posx > tiles[e].x_pos && mouse_posx < tiles[e].x_pos + offset_x && mouse_posy > tiles[e].y_pos && mouse_posy < tiles[e].y_pos + offset_y) {
+            if (tiles[e].zaszlo == 0 && tiles[e].kattintott == 0) {
+                tiles[e].divObj.attr("src", "zaszlo.png");
+                tiles[e].zaszlo = 1;
                 zaszlok_szama--;
-            } else if (kocka_array[e].zaszlo == 1 && kocka_array[e].kattintott == 0) {
-                kocka_array[e].divObj.attr("src", "enemy.png");
-                kocka_array[e].zaszlo = 0;
+            } else if (tiles[e].zaszlo == 1 && tiles[e].kattintott == 0) {
+                tiles[e].divObj.attr("src", "enemy.png");
+                tiles[e].zaszlo = 0;
                 zaszlok_szama++;
             }
         }
     }
     beallit();
-
+    
 }
 
 function beallit() {
@@ -171,180 +234,180 @@ function beallit() {
     if (zaszlok_szama > 99) {
         tizes = Math.floor(zaszlok_szama / 10) - Math.floor(parseInt(zaszlok_szama) / parseInt(100)) * 10;
     }
-
+    
     switch (egyes) {
         case 0:
-            $("#egyes_z").attr("src", "nulla.png");
-            break;
+        $("#egyes_z").attr("src", "nulla.png");
+        break;
         case 1:
-            $("#egyes_z").attr("src", "egy.png");
-            break;
+        $("#egyes_z").attr("src", "egy.png");
+        break;
         case 2:
-            $("#egyes_z").attr("src", "ketto.png");
-            break;
+        $("#egyes_z").attr("src", "ketto.png");
+        break;
         case 3:
-            $("#egyes_z").attr("src", "harom.png");
-            break;
+        $("#egyes_z").attr("src", "harom.png");
+        break;
         case 4:
-            $("#egyes_z").attr("src", "negy.png");
-            break;
+        $("#egyes_z").attr("src", "negy.png");
+        break;
         case 5:
-            $("#egyes_z").attr("src", "ot.png");
-            break;
+        $("#egyes_z").attr("src", "ot.png");
+        break;
         case 6:
-            $("#egyes_z").attr("src", "hat.png");
-            break;
+        $("#egyes_z").attr("src", "hat.png");
+        break;
         case 7:
-            $("#egyes_z").attr("src", "het.png");
-            break;
+        $("#egyes_z").attr("src", "het.png");
+        break;
         case 8:
-            $("#egyes_z").attr("src", "nyolc.png");
-            break;
+        $("#egyes_z").attr("src", "nyolc.png");
+        break;
         case 9:
-            $("#egyes_z").attr("src", "kilenc.png");
-            break;
+        $("#egyes_z").attr("src", "kilenc.png");
+        break;
     }
     switch (tizes) {
         case 0:
-            $("#tizes_z").attr("src", "nulla.png");
-            break;
+        $("#tizes_z").attr("src", "nulla.png");
+        break;
         case 1:
-            $("#tizes_z").attr("src", "egy.png");
-            break;
+        $("#tizes_z").attr("src", "egy.png");
+        break;
         case 2:
-            $("#tizes_z").attr("src", "ketto.png");
-            break;
+        $("#tizes_z").attr("src", "ketto.png");
+        break;
         case 3:
-            $("#tizes_z").attr("src", "harom.png");
-            break;
+        $("#tizes_z").attr("src", "harom.png");
+        break;
         case 4:
-            $("#tizes_z").attr("src", "negy.png");
-            break;
+        $("#tizes_z").attr("src", "negy.png");
+        break;
         case 5:
-            $("#tizes_z").attr("src", "ot.png");
-            break;
+        $("#tizes_z").attr("src", "ot.png");
+        break;
         case 6:
-            $("#tizes_z").attr("src", "hat.png");
-            break;
+        $("#tizes_z").attr("src", "hat.png");
+        break;
         case 7:
-            $("#tizes_z").attr("src", "het.png");
-            break;
+        $("#tizes_z").attr("src", "het.png");
+        break;
         case 8:
-            $("#tizes_z").attr("src", "nyolc.png");
-            break;
+        $("#tizes_z").attr("src", "nyolc.png");
+        break;
         case 9:
-            $("#tizes_z").attr("src", "kilenc.png");
-            break;
+        $("#tizes_z").attr("src", "kilenc.png");
+        break;
     }
 }
 
 function ido() {
     score += 1;
-
+    
     let egyes = score % 10;
     let tizes = Math.floor(score / 10);
     if (score > 99) {
         tizes = Math.floor(score / 10) - Math.floor(parseInt(score) / parseInt(100)) * 10;
     }
     let szazas = Math.floor(score / 100);
-
+    
     switch (egyes) {
         case 0:
-            $("#egyes").attr("src", "nulla.png");
-            break;
+        $("#egyes").attr("src", "nulla.png");
+        break;
         case 1:
-            $("#egyes").attr("src", "egy.png");
-            break;
+        $("#egyes").attr("src", "egy.png");
+        break;
         case 2:
-            $("#egyes").attr("src", "ketto.png");
-            break;
+        $("#egyes").attr("src", "ketto.png");
+        break;
         case 3:
-            $("#egyes").attr("src", "harom.png");
-            break;
+        $("#egyes").attr("src", "harom.png");
+        break;
         case 4:
-            $("#egyes").attr("src", "negy.png");
-            break;
+        $("#egyes").attr("src", "negy.png");
+        break;
         case 5:
-            $("#egyes").attr("src", "ot.png");
-            break;
+        $("#egyes").attr("src", "ot.png");
+        break;
         case 6:
-            $("#egyes").attr("src", "hat.png");
-            break;
+        $("#egyes").attr("src", "hat.png");
+        break;
         case 7:
-            $("#egyes").attr("src", "het.png");
-            break;
+        $("#egyes").attr("src", "het.png");
+        break;
         case 8:
-            $("#egyes").attr("src", "nyolc.png");
-            break;
+        $("#egyes").attr("src", "nyolc.png");
+        break;
         case 9:
-            $("#egyes").attr("src", "kilenc.png");
-            break;
+        $("#egyes").attr("src", "kilenc.png");
+        break;
     }
     switch (tizes) {
         case 0:
-            $("#tizes").attr("src", "nulla.png");
-            break;
+        $("#tizes").attr("src", "nulla.png");
+        break;
         case 1:
-            $("#tizes").attr("src", "egy.png");
-            break;
+        $("#tizes").attr("src", "egy.png");
+        break;
         case 2:
-            $("#tizes").attr("src", "ketto.png");
-            break;
+        $("#tizes").attr("src", "ketto.png");
+        break;
         case 3:
-            $("#tizes").attr("src", "harom.png");
-            break;
+        $("#tizes").attr("src", "harom.png");
+        break;
         case 4:
-            $("#tizes").attr("src", "negy.png");
-            break;
+        $("#tizes").attr("src", "negy.png");
+        break;
         case 5:
-            $("#tizes").attr("src", "ot.png");
-            break;
+        $("#tizes").attr("src", "ot.png");
+        break;
         case 6:
-            $("#tizes").attr("src", "hat.png");
-            break;
+        $("#tizes").attr("src", "hat.png");
+        break;
         case 7:
-            $("#tizes").attr("src", "het.png");
-            break;
+        $("#tizes").attr("src", "het.png");
+        break;
         case 8:
-            $("#tizes").attr("src", "nyolc.png");
-            break;
+        $("#tizes").attr("src", "nyolc.png");
+        break;
         case 9:
-            $("#tizes").attr("src", "kilenc.png");
-            break;
+        $("#tizes").attr("src", "kilenc.png");
+        break;
     }
     switch (szazas) {
         case 0:
-            $("#szazas").attr("src", "nulla.png");
-            break;
+        $("#szazas").attr("src", "nulla.png");
+        break;
         case 1:
-            $("#szazas").attr("src", "egy.png");
-            break;
+        $("#szazas").attr("src", "egy.png");
+        break;
         case 2:
-            $("#szazas").attr("src", "ketto.png");
-            break;
+        $("#szazas").attr("src", "ketto.png");
+        break;
         case 3:
-            $("#szazas").attr("src", "harom.png");
-            break;
+        $("#szazas").attr("src", "harom.png");
+        break;
         case 4:
-            $("#szazas").attr("src", "negy.png");
-            break;
+        $("#szazas").attr("src", "negy.png");
+        break;
         case 5:
-            $("#szazas").attr("src", "ot.png");
-            break;
+        $("#szazas").attr("src", "ot.png");
+        break;
         case 6:
-            $("#szazas").attr("src", "hat.png");
-            break;
+        $("#szazas").attr("src", "hat.png");
+        break;
         case 7:
-            $("#szazas").attr("src", "het.png");
-            break;
+        $("#szazas").attr("src", "het.png");
+        break;
         case 8:
-            $("#szazas").attr("src", "nyolc.png");
-            break;
+        $("#szazas").attr("src", "nyolc.png");
+        break;
         case 9:
-            $("#szazas").attr("src", "kilenc.png");
-            break;
+        $("#szazas").attr("src", "kilenc.png");
+        break;
     }
-
+    
     if (osszeskocka == aknakszama) {
         nyertel();
     }
@@ -357,12 +420,12 @@ function torol_kocka() {
 function init_kocka() {
     for (let i = 0; i < kocka_oszlop; i++) {
         for (let k = 0; k < kocka_sor; k++) {
-
-            kocka_array.push({
+            
+            tiles.push({
                 x_pos: start_ex + i * offset_x,
                 y_pos: start_ey + k * offset_y,
                 divObj: kocka.clone(),
-                kocka_value: 0,
+                value: 0,
                 szam: 0,
                 kattintott: 0,
                 lenyomva: 0,
@@ -373,21 +436,21 @@ function init_kocka() {
     let randomszam;
     for (let i = 0; i < aknakszama;) {
         randomszam = Math.floor(Math.random() * osszeskocka);
-        if (kocka_array[randomszam].kocka_value == 0) {
-            kocka_array[randomszam].kocka_value = 1;
+        if (tiles[randomszam].value == 0) {
+            tiles[randomszam].value = 1;
             i++;
         }
     }
-    for (var e in kocka_array) {
-        kocka_array[e].szam = megszamol(e);
+    for (var e in tiles) {
+        tiles[e].szam = megszamol(e);
     }
 }
 
 function draw_kocka() {
-    for (let e in kocka_array) {
-        let act_kocka = kocka_array[e];
+    for (let e in tiles) {
+        let act_kocka = tiles[e];
         let act_div = act_kocka.divObj;
-        game_area.append(act_div);
+        gameArea.append(act_div);
         act_div.css({
             left: act_kocka.x_pos,
             top: act_kocka.y_pos,
@@ -399,68 +462,68 @@ function draw_kocka() {
 }
 
 function click_kocka(ev) {
-    let div_pos = game_area.offset();
+    let div_pos = gameArea.offset();
     let mouse_posx = Math.ceil(ev.clientX - div_pos.left);
     let mouse_posy = Math.ceil(ev.clientY - div_pos.top);
-    for (var e in kocka_array) {
-        if (kocka_array[e].kattintott === 0 && kocka_array[e].zaszlo == 0 && mouse_posx > kocka_array[e].x_pos && mouse_posx < kocka_array[e].x_pos + offset_x && mouse_posy > kocka_array[e].y_pos && mouse_posy < kocka_array[e].y_pos + offset_y) {
-
-            if (kocka_array[e].kocka_value === 1) {
+    for (var e in tiles) {
+        if (tiles[e].kattintott === 0 && tiles[e].zaszlo == 0 && mouse_posx > tiles[e].x_pos && mouse_posx < tiles[e].x_pos + offset_x && mouse_posy > tiles[e].y_pos && mouse_posy < tiles[e].y_pos + offset_y) {
+            
+            if (tiles[e].value === 1) {
                 vesztettel();
-                kocka_array[e].kattintott = 1;
-                kocka_array[e].divObj.attr("src", "blowup.png");
+                tiles[e].kattintott = 1;
+                tiles[e].divObj.attr("src", "blowup.png");
             } else {
-
-                switch (kocka_array[e].szam) {
+                
+                switch (tiles[e].szam) {
                     case 0:
-                        osszeskocka -= 1;
-                        kocka_array[e].kattintott = 1;
-                        kocka_array[e].divObj.attr("src", "ures.png");
-                        kocka_lapit(e);
-                        break;
+                    osszeskocka -= 1;
+                    tiles[e].kattintott = 1;
+                    tiles[e].divObj.attr("src", "ures.png");
+                    kocka_lapit(e);
+                    break;
                     case 1:
-                        osszeskocka -= 1;
-                        kocka_array[e].kattintott = 1;
-                        kocka_array[e].divObj.attr("src", "1.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[e].kattintott = 1;
+                    tiles[e].divObj.attr("src", "1.png");
+                    break;
                     case 2:
-                        osszeskocka -= 1;
-                        kocka_array[e].kattintott = 1;
-                        kocka_array[e].divObj.attr("src", "2.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[e].kattintott = 1;
+                    tiles[e].divObj.attr("src", "2.png");
+                    break;
                     case 3:
-                        osszeskocka -= 1;
-                        kocka_array[e].kattintott = 1;
-                        kocka_array[e].divObj.attr("src", "3.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[e].kattintott = 1;
+                    tiles[e].divObj.attr("src", "3.png");
+                    break;
                     case 4:
-                        osszeskocka -= 1;
-                        kocka_array[e].kattintott = 1;
-                        kocka_array[e].divObj.attr("src", "4.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[e].kattintott = 1;
+                    tiles[e].divObj.attr("src", "4.png");
+                    break;
                     case 5:
-                        osszeskocka -= 1;
-                        kocka_array[e].kattintott = 1;
-                        kocka_array[e].divObj.attr("src", "5.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[e].kattintott = 1;
+                    tiles[e].divObj.attr("src", "5.png");
+                    break;
                     case 6:
-                        osszeskocka -= 1;
-                        kocka_array[e].kattintott = 1;
-                        kocka_array[e].divObj.attr("src", "6.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[e].kattintott = 1;
+                    tiles[e].divObj.attr("src", "6.png");
+                    break;
                     case 7:
-                        osszeskocka -= 1;
-                        kocka_array[e].kattintott = 1;
-                        kocka_array[e].divObj.attr("src", "7.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[e].kattintott = 1;
+                    tiles[e].divObj.attr("src", "7.png");
+                    break;
                     case 8:
-                        osszeskocka -= 1;
-                        kocka_array[e].kattintott = 1;
-                        kocka_array[e].divObj.attr("src", "8.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[e].kattintott = 1;
+                    tiles[e].divObj.attr("src", "8.png");
+                    break;
                 }
             }
-        } else if (kocka_array[e].kattintott === 1 && kocka_array[e].zaszlo == 0 && mouse_posx > kocka_array[e].x_pos && mouse_posx < kocka_array[e].x_pos + offset_x && mouse_posy > kocka_array[e].y_pos && mouse_posy < kocka_array[e].y_pos + offset_y) {
+        } else if (tiles[e].kattintott === 1 && tiles[e].zaszlo == 0 && mouse_posx > tiles[e].x_pos && mouse_posx < tiles[e].x_pos + offset_x && mouse_posy > tiles[e].y_pos && mouse_posy < tiles[e].y_pos + offset_y) {
             nagykatt(e);
         }
     }
@@ -470,14 +533,14 @@ function zaszlok_korul(e) {
     let zaszlok_szama = 0;
     for (var i = -1; i < 2; i++) {
         for (var k = -1; k < 2; k++) {
-
-            sorszam = (i + parseInt(e)) + (k * kocka_sor);
-            if (kocka_array[sorszam] != undefined && kocka_array[sorszam].zaszlo == 1 && Math.abs(kocka_array[sorszam].y_pos - kocka_array[e].y_pos) <= 40) {
-
+            
+            index = (i + parseInt(e)) + (k * kocka_sor);
+            if (tiles[index] != undefined && tiles[index].zaszlo == 1 && Math.abs(tiles[index].y_pos - tiles[e].y_pos) <= 40) {
+                
                 zaszlok_szama++;
             }
         }
-
+        
     }
     return zaszlok_szama;
 }
@@ -486,165 +549,140 @@ function nagykatt(e) {
     let zaszlok_szama = zaszlok_korul(e);
     for (var i = -1; i < 2; i++) {
         for (var k = -1; k < 2; k++) {
-
-            sorszam = (i + parseInt(e)) + (k * kocka_sor);
-            if (kocka_array[sorszam] != undefined && zaszlok_szama >= kocka_array[e].szam && kocka_array[sorszam].kattintott === 0 && sorszam != parseInt(e) && kocka_array[sorszam].zaszlo == 0 && Math.abs(kocka_array[sorszam].y_pos - kocka_array[e].y_pos) <= 40) {
-
-
-                switch (kocka_array[sorszam].szam) {
+            
+            index = (i + parseInt(e)) + (k * kocka_sor);
+            if (tiles[index] != undefined && zaszlok_szama >= tiles[e].szam && tiles[index].kattintott === 0 && index != parseInt(e) && tiles[index].zaszlo == 0 && Math.abs(tiles[index].y_pos - tiles[e].y_pos) <= 40) {
+                
+                
+                switch (tiles[index].szam) {
                     case 0:
-                        kocka_array[sorszam].divObj.attr("src", "ures.png");
-                        kocka_array[sorszam].kattintott = 1;
-                        osszeskocka -= 1;
-                        kocka_lapit(sorszam);
-
-                        break;
+                    tiles[index].divObj.attr("src", "ures.png");
+                    tiles[index].kattintott = 1;
+                    osszeskocka -= 1;
+                    kocka_lapit(index);
+                    
+                    break;
                     case 1:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "1.png");
-
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "1.png");
+                    
+                    break;
                     case 2:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "2.png");
-
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "2.png");
+                    
+                    break;
                     case 3:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "3.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "3.png");
+                    break;
                     case 4:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "4.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "4.png");
+                    break;
                     case 5:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "5.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "5.png");
+                    break;
                     case 6:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "6.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "6.png");
+                    break;
                     case 7:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "7.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "7.png");
+                    break;
                     case 8:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "8.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "8.png");
+                    break;
                 }
-                if (kocka_array[sorszam].kocka_value === 1) {
-                    kocka_array[sorszam].kattintott = 1;
-                    kocka_array[sorszam].divObj.attr("src", "blowup.png");
+                if (tiles[index].value === 1) {
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "blowup.png");
                     vesztettel();
                 }
             }
         }
-
+        
     }
 }
 
 function kocka_lapit(e) {
     for (var i = -1; i < 2; i++) {
         for (var k = -1; k < 2; k++) {
-
-            sorszam = (i + parseInt(e)) + (k * kocka_sor);
-
-            if (kocka_array[sorszam] != undefined && kocka_array[sorszam].kattintott === 0 && sorszam != parseInt(e) && kocka_array[sorszam].zaszlo == 0 && Math.abs(kocka_array[sorszam].y_pos - kocka_array[e].y_pos) <= 40) {
-
-                switch (kocka_array[sorszam].szam) {
+            
+            index = (i + parseInt(e)) + (k * kocka_sor);
+            
+            if (tiles[index] != undefined && tiles[index].kattintott === 0 && index != parseInt(e) && tiles[index].zaszlo == 0 && Math.abs(tiles[index].y_pos - tiles[e].y_pos) <= 40) {
+                
+                switch (tiles[index].szam) {
                     case 0:
-                        kocka_array[sorszam].divObj.attr("src", "ures.png");
-                        if (kocka_array[sorszam].kattintott == 0) {
-                            kocka_array[sorszam].kattintott = 1;
-                            kocka_lapit(sorszam);
-                            osszeskocka -= 1;
-
-                        }
-                        break;
+                    tiles[index].divObj.attr("src", "ures.png");
+                    if (tiles[index].kattintott == 0) {
+                        tiles[index].kattintott = 1;
+                        kocka_lapit(index);
+                        osszeskocka -= 1;
+                        
+                    }
+                    break;
                     case 1:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "1.png");
-
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "1.png");
+                    
+                    break;
                     case 2:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "2.png");
-
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "2.png");
+                    
+                    break;
                     case 3:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "3.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "3.png");
+                    break;
                     case 4:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "4.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "4.png");
+                    break;
                     case 5:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "5.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "5.png");
+                    break;
                     case 6:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "6.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "6.png");
+                    break;
                     case 7:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "7.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "7.png");
+                    break;
                     case 8:
-                        osszeskocka -= 1;
-                        kocka_array[sorszam].kattintott = 1;
-                        kocka_array[sorszam].divObj.attr("src", "8.png");
-                        break;
+                    osszeskocka -= 1;
+                    tiles[index].kattintott = 1;
+                    tiles[index].divObj.attr("src", "8.png");
+                    break;
                 }
             }
         }
-
+        
     }
 }
 
-function megszamol(e) {
-    let szam = 0;
-    for (var i = -1; i < 2; i++) {
-        for (var k = -1; k < 2; k++) {
-
-            sorszam = (i + parseInt(e)) + (k * kocka_sor);
-
-            if (kocka_array[sorszam] != undefined && Math.abs(kocka_array[sorszam].y_pos - kocka_array[e].y_pos) <= 40) {
-
-
-                if (kocka_array[sorszam].kocka_value == 1) {
-                    szam += 1;
-
-                    /*if (megszamol(sorszam)==0)
-                     {
-                         kocka_array[sorszam].divObj.attr("src", "ures.png");
-                     }*/
-                }
-            }
-
-
-        }
-    }
-    return szam;
-}
 
 function reset_game() {
     youdied.currentTime = 0;
@@ -657,19 +695,19 @@ function reset_game() {
     clicked = 0;
     score = 0;
     torol_kocka();
-    kocka_array = [];
+    tiles = [];
     $("#egyes").attr("src", "nulla.png");
     $("#tizes").attr("src", "nulla.png");
     $("#szazas").attr("src", "nulla.png");
 }
 
 function vesztettel() {
-    for (let e in kocka_array) {
-        if (kocka_array[e].kocka_value == 1 && kocka_array[e].kattintott == 0) {
-            kocka_array[e].divObj.attr("src", "bomba.png");
-            kocka_array[e].kattintott = 1;
+    for (let e in tiles) {
+        if (tiles[e].value == 1 && tiles[e].kattintott == 0) {
+            tiles[e].divObj.attr("src", "MINEa.png");
+            tiles[e].kattintott = 1;
         } else {
-            kocka_array[e].kattintott = 1;
+            tiles[e].kattintott = 1;
         }
     }
     youdied.play();
@@ -677,23 +715,23 @@ function vesztettel() {
     $(reset).attr("src", "sadsmile.png");
     clearInterval(timer);
     console.log("vesztettel");
-
+    
 }
 
 function nyertel() {
     clearInterval(timer);
-
+    
     var person = prompt("Gratulálok nyertél!\nAdd meg a neved:", "anonymus");
-    if (gamemode == 0)
-        localStorage.setItem("e" + person, Number(score));
+    if (difficulty == 0)
+    localStorage.setItem("e" + person, Number(score));
     else
-        localStorage.setItem("h" + person, Number(score));
+    localStorage.setItem("h" + person, Number(score));
     fill_toplist();
 }
 
 function fill_toplist() {
     var data = [];
-
+    
     $('#list_easy').html('<strong>Easy mode</strong><br><br>');
     $('#list_hard').html('<strong>Hard mode</strong><br><br>');
     for (var i = 0; i < localStorage.length; i++) {
@@ -718,5 +756,5 @@ function fill_toplist() {
             }
         }
     }
-
+    
 }
